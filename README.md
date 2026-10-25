@@ -100,8 +100,8 @@ npm run install:all
 npm run build
 ```
 
-### Passo 3: Iniciar a aplicação
-Para rodar a aplicação unificada (o backend gerencia a coleta contínua, persiste no SQLite e serve a interface no navegador):
+### Passo 3: Iniciar a aplicação localmente
+Para rodar a aplicação unificada (o backend gerencia a coleta contínua, persiste no banco e serve a interface no navegador):
 ```bash
 npm start
 ```
@@ -112,6 +112,38 @@ Caso queira rodar o frontend com Vite dev server em paralelo:
 - **Terminal 1**: `cd backend && npm start` (porta `3001`)
 - **Terminal 2**: `cd frontend && npm run dev` (porta `5173`)
 Acesse em: **`http://localhost:5173`**
+
+---
+
+## 5. Hospedagem na Nuvem (Render / Vercel)
+
+A aplicação foi projetada para rodar em nuvem em um **único domínio público**, servindo o frontend React e a API Node.js de forma integrada, com suporte a **banco de dados externo** e **atualização sob demanda (SWR)** sem depender de timers em memória ou arquivos locais.
+
+### A. Deploy no Render (Recomendado)
+O Render suporta nativamente a arquitetura unificada como um **Web Service Node.js**:
+
+1. Acesse o [Render Dashboard](https://dashboard.render.com).
+2. Clique em **New** > **Web Service**.
+3. Conecte ao repositório GitHub: `https://github.com/F4f43l/Segundo-Turno---ao-vivo.git`.
+4. Preencha as configurações (já pré-configuradas em [render.yaml](file:///c:/Segundo%20Turno/render.yaml)):
+   - **Build Command**: `npm run install:all && npm run build`
+   - **Start Command**: `npm start`
+   - **Environment Variables**:
+     - `NODE_ENV`: `production`
+     - `PORT`: `10000`
+     - `DATABASE_URL`: URL do seu banco de dados PostgreSQL externo (ex: Supabase, Neon ou Render Postgres). *(Se omitido, utiliza SQLite local)*.
+5. Clique em **Create Web Service**.
+6. O Render fornecerá uma URL pública automática: `https://segundo-turno-ao-vivo.onrender.com`.
+
+### B. Banco de Dados Persistente Externo
+Para não depender do disco efêmero de servidores gratuitos:
+- Defina a variável de ambiente `DATABASE_URL` apontando para qualquer PostgreSQL (Neon, Supabase ou Render PostgreSQL).
+- As tabelas `snapshots` e `snapshot_candidatos` são criadas automaticamente no primeiro acesso.
+
+### C. Atualização Sob Demanda (Zero Dependência de Timers)
+O coletor implementa o padrão **Stale-While-Revalidate**:
+- A cada requisição a `/api/resultado`, se a última coleta tiver mais de 15 segundos, o backend consulta o TSE de forma assíncrona, grava o novo marco no banco externo e retorna o dado atualizado.
+- O polling automático do próprio frontend a cada 10-15s garante que as visitas mantenham a apuração continuamente fresca sem necessidade de processos em background que nunca dormem.
 
 ---
 

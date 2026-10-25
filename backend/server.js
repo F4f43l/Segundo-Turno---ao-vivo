@@ -26,9 +26,9 @@ app.use((req, res, next) => {
  * GET /api/resultado
  * Retorna situação atual da apuração, resumo de candidatos, urnas apuradas e status da conexão.
  */
-app.get('/api/resultado', (req, res) => {
+app.get('/api/resultado', async (req, res) => {
   try {
-    const resultado = tseCollector.obterResultadoAtual();
+    const resultado = await tseCollector.obterResultadoAtual();
     res.json(resultado);
   } catch (err) {
     res.status(500).json({ erro: err.message });
@@ -39,9 +39,9 @@ app.get('/api/resultado', (req, res) => {
  * GET /api/historico
  * Retorna todos os marcos cronológicos persistidos para alimentar o Recharts no frontend.
  */
-app.get('/api/historico', (req, res) => {
+app.get('/api/historico', async (req, res) => {
   try {
-    const historico = tseCollector.obterHistorico();
+    const historico = await tseCollector.obterHistorico();
     res.json(historico);
   } catch (err) {
     res.status(500).json({ erro: err.message });
@@ -55,7 +55,7 @@ app.get('/api/historico', (req, res) => {
 app.post('/api/atualizar', async (req, res) => {
   try {
     await tseCollector.coletar(true);
-    const resultado = tseCollector.obterResultadoAtual();
+    const resultado = await tseCollector.obterResultadoAtual();
     res.json(resultado);
   } catch (err) {
     res.status(500).json({ erro: err.message });

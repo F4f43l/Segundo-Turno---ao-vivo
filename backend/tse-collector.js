@@ -59,11 +59,20 @@ class TseCollector {
     this.lastCheckedTimestamp = null;
     this.lastError = null;
     this.timer = null;
+    this.latestSnapshot = null;
+    this.initialLoadDone = false;
+  }
 
-    // Carrega o último snapshot persistido no banco ao inicializar
-    this.latestSnapshot = obterUltimoSnapshot();
-    if (this.latestSnapshot) {
-      this.lastSuccessTimestamp = new Date(this.latestSnapshot.horarioColeta).getTime();
+  async carregarUltimoSnapshotInicial() {
+    if (this.initialLoadDone) return;
+    try {
+      this.latestSnapshot = await obterUltimoSnapshot();
+      if (this.latestSnapshot) {
+        this.lastSuccessTimestamp = new Date(this.latestSnapshot.horarioColeta).getTime();
+      }
+      this.initialLoadDone = true;
+    } catch (err) {
+      console.error('[TseCollector] Erro ao carregar último snapshot do banco:', err.message);
     }
   }
 
@@ -126,7 +135,6 @@ class TseCollector {
           for (const p of ag.par) {
             if (p.cand && Array.isArray(p.cand)) {
               for (const c of p.cand) {
-                // Candidato estável
                 const codigo = String(c.sqcand || c.n);
                 const numero = String(c.n);
                 const nomeUrna = c.nmu || c.nm || `Candidato ${numero}`;
@@ -161,7 +169,6 @@ class TseCollector {
     candidatos.sort((a, b) => b.votos - a.votos);
 
     // Gerar um hash único baseado nos dados relevantes de apuração
-    // Mudanças em votos ou urnas geram um novo hash
     const fingerprintContent = JSON.stringify({
       idg: data.idg,
       hg: data.hg,
@@ -197,13 +204,12 @@ class TseCollector {
    */
   async coletar(forcar = false) {
     if (this.isFetching) {
-      console.log('[TseCollector] Consulta já em andamento. Ignorando chamada sobreposta.');
+      console.log('[TseCollector] Consulta já em andamento. Aguardando conclusão.');
       return;
     }
 
     this.isFetching = true;
     const now = new Date();
-    // Horário de coleta com fuso America/Sao_Paulo preservado (UTC-3)
     const horarioColetaIso = now.toISOString();
 
     try {
@@ -222,12 +228,11 @@ class TseCollector {
       console.log(`[TseCollector] Consultando TSE: ${this.url}`);
       const res = await fetch(this.url, {
         headers,
-        signal: AbortSignal.timeout(10000) // Timeout seguro de 10s
+        signal: AbortSignal.timeout(10000)
       });
 
       this.lastCheckedTimestamp = Date.now();
 
-      // Se 304 Not Modified, o conteúdo no servidor não mudou
       if (res.status === 304) {
         console.log('[TseCollector] 304 Not Modified: Sem alterações no TSE.');
         this.lastSuccessTimestamp = Date.now();
@@ -239,7 +244,6 @@ class TseCollector {
         throw new Error(`TSE HTTP ${res.status}: ${res.statusText}`);
       }
 
-      // Armazena headers de cache para requisições subsequentes
       if (res.headers.get('etag')) {
         this.lastEtag = res.headers.get('etag');
       }
@@ -250,15 +254,14 @@ class TseCollector {
       const json = await res.json();
       const { snapshot, candidatos } = this.normalizarDadosTse(json, horarioColetaIso);
 
-      // Salva snapshot no banco de dados SQLite (se novo)
-      const resSalvar = salvarSnapshot(snapshot, candidatos);
+      // Salva snapshot no banco de dados (PostgreSQL ou SQLite)
+      const resSalvar = await salvarSnapshot(snapshot, candidatos);
       if (resSalvar.inserido) {
         console.log(`[TseCollector] Novo marco persistido! ID: ${resSalvar.id}, Urnas: ${snapshot.percentual_urnas}%, Votos Válidos: ${snapshot.votos_validos_total}`);
       } else {
         console.log('[TseCollector] Dados recebidos idênticos ao marco anterior. Histórico mantido sem duplicação.');
       }
 
-      // Atualiza o estado em memória mais recente
       this.latestSnapshot = {
         id: resSalvar.id,
         horarioColeta: snapshot.horario_coleta,
@@ -282,18 +285,21 @@ class TseCollector {
     } catch (err) {
       console.error(`[TseCollector] Erro ao consultar TSE: ${err.message}`);
       this.lastError = err.message;
-      // IMPORTANTE: NÃO apagar this.latestSnapshot nem o histórico persistido!
     } finally {
       this.isFetching = false;
     }
   }
 
   /**
-   * Inicia o polling contínuo periódico
+   * Inicia o polling contínuo periódico (opcional quando em processo permanente)
    */
   iniciar() {
+    if (process.env.DISABLE_BACKGROUND_TIMER === 'true') {
+      console.log('[TseCollector] Timer em segundo plano desativado (modo sob demanda puro).');
+      return;
+    }
+
     console.log(`[TseCollector] Iniciando coletor com intervalo de ${POLLING_INTERVAL_MS / 1000}s`);
-    // Primeira coleta imediata
     this.coletar(true);
 
     this.timer = setInterval(() => {
@@ -313,13 +319,19 @@ class TseCollector {
 
   /**
    * Retorna os dados para a rota GET /api/resultado
+   * Implementa Stale-While-Revalidate sob demanda sem depender de timers em memória
    */
-  obterResultadoAtual() {
-    const agora = Date.now();
-    const snap = this.latestSnapshot;
+  async obterResultadoAtual() {
+    await this.carregarUltimoSnapshotInicial();
 
-    // Considera desatualizado se última consulta bem sucedida tiver mais de 2 minutos
-    // ou se a última consulta falhou
+    const agora = Date.now();
+
+    // Se não há dados ou a última verificação tiver mais de 15 segundos, revalida sob demanda
+    if (!this.lastCheckedTimestamp || (agora - this.lastCheckedTimestamp > POLLING_INTERVAL_MS)) {
+      await this.coletar(false);
+    }
+
+    const snap = this.latestSnapshot;
     const tempoSemSucessoMs = this.lastSuccessTimestamp ? (agora - this.lastSuccessTimestamp) : null;
     const isStale = (this.lastError !== null) || (tempoSemSucessoMs !== null && tempoSemSucessoMs > 120000);
 
@@ -376,8 +388,8 @@ class TseCollector {
   /**
    * Retorna os dados para a rota GET /api/historico
    */
-  obterHistorico() {
-    return obterHistoricoSnapshots();
+  async obterHistorico() {
+    return await obterHistoricoSnapshots();
   }
 }
 
