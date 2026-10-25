@@ -1,0 +1,22 @@
+{
+  "name": "dashboard-apuracao-eleitoral",
+  "version": "1.0.0",
+  "description": "Dashboard em tempo real da apuração presidencial do 2º turno com dados oficiais do TSE",
+  "scripts": {
+    "start": "node backend/server.js",
+    "backend": "cd backend && npm start",
+    "frontend:dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "install:all": "cd backend && npm install && cd ../frontend && npm install"
+  },
+  "keywords": [
+    "tse",
+    "eleicoes",
+    "apuracao",
+    "dashboard",
+    "recharts",
+    "sqlite"
+  ],
+  "author": "",
+  "license": "ISC"
+}

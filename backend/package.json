@@ -1,0 +1,15 @@
+{
+  "name": "apuracao-backend",
+  "version": "1.0.0",
+  "description": "Backend de coleta e normalização da apuração oficial do TSE",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "build": "echo \"Backend Node.js configurado e pronto (sem etapa de build necessária)\""
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}

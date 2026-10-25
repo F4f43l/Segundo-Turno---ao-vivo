@@ -1,0 +1,473 @@
+/* Dashboard de Apuração - CSS Minimalista Focado no Gráfico */
+
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000000;
+  color: #ffffff;
+  padding: 16px 24px;
+  gap: 12px;
+  overflow: hidden;
+  position: relative;
+  transition: background 650ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 650ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Ambientação Dinâmica - Lula na Frente (Tom Vermelho Escuro e Discreto) */
+.dashboard-container.lead-lula {
+  background: 
+    radial-gradient(ellipse 90% 55% at 50% -10%, rgba(185, 28, 28, 0.24) 0%, rgba(127, 29, 29, 0.12) 40%, rgba(15, 3, 5, 0.7) 80%, #000000 100%),
+    radial-gradient(ellipse 70% 35% at 50% 110%, rgba(153, 27, 27, 0.14) 0%, transparent 70%),
+    #050001;
+  box-shadow: inset 0 0 120px rgba(185, 28, 28, 0.10);
+}
+
+/* Ambientação Dinâmica - Flávio Bolsonaro na Frente (Tom Amarelo-Ouro Escuro e Discreto) */
+.dashboard-container.lead-bolsonaro {
+  background: 
+    radial-gradient(ellipse 90% 55% at 50% -10%, rgba(217, 119, 6, 0.24) 0%, rgba(180, 83, 9, 0.12) 40%, rgba(18, 12, 3, 0.7) 80%, #000000 100%),
+    radial-gradient(ellipse 70% 35% at 50% 110%, rgba(202, 138, 4, 0.14) 0%, transparent 70%),
+    #060401;
+  box-shadow: inset 0 0 120px rgba(217, 119, 6, 0.10);
+}
+
+/* Ambientação Dinâmica - Empate (Fundo Preto Neutro Original) */
+.dashboard-container.lead-empate {
+  background-color: #000000;
+  box-shadow: none;
+}
+
+/* Estado desatualizado atenuado */
+.dashboard-container.is-stale {
+  filter: saturate(0.8);
+}
+
+/* Cabeçalho Superior */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-bottom: 1px solid #141414;
+  padding-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.header-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-title-small {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  color: #71717a;
+  text-transform: uppercase;
+}
+
+.header-subtitle {
+  font-size: 14px;
+  letter-spacing: 0.8px;
+  font-weight: 700;
+  color: #f4f4f5;
+  margin-top: 2px;
+}
+
+.header-status-area {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Indicador de Status da Atualização */
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #09090b;
+  border: 1px solid #27272a;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  color: #a1a1aa;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.online {
+  background-color: #10b981;
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+}
+
+.status-dot.stale {
+  background-color: #f59e0b;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+}
+
+.status-dot.error {
+  background-color: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+
+.status-time {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.status-warning-badge {
+  background-color: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: #fbbf24;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.btn-toggle-scale {
+  background-color: transparent;
+  border: 1px solid #3f3f46;
+  color: #a1a1aa;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-toggle-scale:hover {
+  background-color: #18181b;
+  color: #ffffff;
+  border-color: #71717a;
+}
+
+/* Indicador de Liderança Dinâmico */
+.leader-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 650ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.leader-pill-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.leader-pill.lead-lula {
+  background-color: rgba(185, 28, 28, 0.16);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+}
+
+.leader-pill.lead-lula .leader-pill-dot {
+  background-color: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+}
+
+.leader-pill.lead-bolsonaro {
+  background-color: rgba(217, 119, 6, 0.16);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fde68a;
+}
+
+.leader-pill.lead-bolsonaro .leader-pill-dot {
+  background-color: #f59e0b;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.8);
+}
+
+.leader-pill.lead-empate {
+  background-color: rgba(39, 39, 42, 0.6);
+  border: 1px solid #3f3f46;
+  color: #a1a1aa;
+}
+
+.leading-tag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+
+.leading-tag.tag-lula {
+  background-color: rgba(185, 28, 28, 0.25);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.leading-tag.tag-bolsonaro {
+  background-color: rgba(217, 119, 6, 0.25);
+  color: #fde68a;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+/* Barra de Resumo Discreta Acima do Gráfico */
+.summary-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background-color: #050505;
+  border: 1px solid #18181b;
+  border-radius: 8px;
+  padding: 10px 16px;
+  flex-shrink: 0;
+  transition: border-color 650ms cubic-bezier(0.4, 0, 0.2, 1), background-color 650ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lead-lula .summary-bar {
+  border-color: rgba(185, 28, 28, 0.3);
+  background-color: rgba(15, 3, 5, 0.65);
+}
+
+.lead-bolsonaro .summary-bar {
+  border-color: rgba(217, 119, 6, 0.3);
+  background-color: rgba(18, 12, 3, 0.65);
+}
+
+.lead-empate .summary-bar {
+  border-color: #18181b;
+  background-color: #050505;
+}
+
+.candidates-summary {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.candidate-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.candidate-color-bar {
+  width: 4px;
+  height: 32px;
+  border-radius: 2px;
+}
+
+.candidate-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.candidate-name-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.candidate-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.3px;
+}
+
+.candidate-party {
+  font-size: 11px;
+  color: #71717a;
+  font-weight: 500;
+}
+
+.candidate-stats-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 1px;
+}
+
+.candidate-percent {
+  font-size: 18px;
+  font-weight: 800;
+  color: #ffffff;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.candidate-votes {
+  font-size: 11px;
+  color: #a1a1aa;
+}
+
+.urnas-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  border-left: 1px solid #27272a;
+  padding-left: 18px;
+}
+
+.urnas-label {
+  font-size: 11px;
+  color: #71717a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.urnas-value {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffffff;
+  font-family: 'JetBrains Mono', monospace;
+  margin-top: 1px;
+}
+
+.urnas-detail {
+  font-size: 10px;
+  color: #52525b;
+}
+
+/* Área Central do Gráfico */
+.chart-area {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  position: relative;
+  margin-top: 4px;
+}
+
+/* Tooltip Customizado */
+.custom-tooltip {
+  background-color: #0c0c0e;
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
+  font-size: 12px;
+  min-width: 210px;
+}
+
+.tooltip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #1f1f23;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+
+.tooltip-time {
+  color: #ffffff;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+
+.tooltip-urnas {
+  color: #a1a1aa;
+  font-size: 11px;
+}
+
+.tooltip-candidate {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  gap: 12px;
+}
+
+.tooltip-cand-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tooltip-cand-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.tooltip-cand-name {
+  color: #e4e4e7;
+  font-weight: 600;
+}
+
+.tooltip-cand-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.tooltip-cand-pct {
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+}
+
+.tooltip-cand-votes {
+  font-size: 10px;
+  color: #71717a;
+}
+
+/* Telas de Carregamento e Mensagens */
+.state-message-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: #000000;
+  gap: 16px;
+  color: #a1a1aa;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #27272a;
+  border-top-color: #20b486;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .summary-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .urnas-summary {
+    border-left: none;
+    border-top: 1px solid #27272a;
+    padding-left: 0;
+    padding-top: 8px;
+    align-items: flex-start;
+    text-align: left;
+    width: 100%;
+  }
+  .candidate-percent {
+    font-size: 15px;
+  }
+}
